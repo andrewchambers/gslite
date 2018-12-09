@@ -39,31 +39,31 @@ func Usage() int {
 	fmt.Println(`
 gslite - Small google storage client.
 
-	gslite cat [gs://BUCKET/OBJECT ...]
-		Print the concatenation of storage objects.
+  gslite cat [gs://BUCKET/OBJECT ...]
+    Print the concatenation of storage objects.
 
-	gslite put gs://BUCKET/OBJECT
-		Upload stdin to bucket.
+  gslite put gs://BUCKET/OBJECT
+    Upload stdin to bucket.
 
-	gslite stat [-compact] gs://BUCKET/OBJECT
-		Print object information to stdout. Exit code is 2
-		if the object did not exist, exit code is 1 on other errors.
+  gslite stat [-compact] gs://BUCKET/OBJECT
+    Print object information to stdout. Exit code is 2
+    if the object did not exist, exit code is 1 on other errors.
 
-	gslite exists gs://BUCKET/OBJECT
-		Exit cleanly if the given object exists.
+  gslite exists gs://BUCKET/OBJECT
+    Exit cleanly if the given object exists.
 
-	gslite list [-stat] gs://BUCKET/OBJECT
-		Print all object information under the given path.
+  gslite list [-stat] gs://BUCKET/OBJECT
+    Print all object information under the given path.
 
-	gslite rm [-r] gs://BUCKET/OBJECT
-		Remove an object, do nothing if it didn't exist.
+  gslite rm [-r] gs://BUCKET/OBJECT
+    Remove an object, do nothing if it didn't exist.
 
-	gslite mb -project PROJECT NAME
-		Create a bucket.
+  gslite mb -project PROJECT NAME
+    Create a bucket.
 
-	gslite rmb gs://BUCKET/
-	  Delete a bucket.
-	`)
+  gslite rmb gs://BUCKET/
+    Delete a bucket.
+  `)
 	return 0
 }
 
