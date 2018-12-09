@@ -32,6 +32,8 @@ gslite - Small google storage client.
 
   gslite rm [-r] gs://BUCKET/OBJECT
     Remove an object, do nothing if it didn't exist.
+    If -r is specified, will delete following the same
+    rules that list follows.
 
   gslite mb -project PROJECT NAME
     Create a bucket.
