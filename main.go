@@ -11,6 +11,8 @@ import (
 	"regexp"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/api/iterator"
 )
 
@@ -60,7 +62,7 @@ gslite - Small google storage client.
 	If -r is specified, will delete following the same
 	rules that list follows.
 
-  gslite mb -project PROJECT NAME
+  gslite mb -google-cloud-project PROJECT NAME
     Create a bucket.
 
   gslite rmb gs://BUCKET/
@@ -267,8 +269,13 @@ func List() int {
 func Rm() int {
 
 	r := flag.Bool("r", false, "Delete all objects with this prefix.")
+	j := flag.Int("j", 64, "Maximum number of concurrent delete calls to perform.")
 
 	flag.Parse()
+
+	if *j <= 0 {
+		*j = 1
+	}
 
 	ctx := context.Background()
 
@@ -285,8 +292,13 @@ func Rm() int {
 			return 1
 		}
 
+		bucket := client.Bucket(u.Bucket)
+
 		if *r {
-			it := client.Bucket(u.Bucket).Objects(ctx, &storage.Query{
+			sem := semaphore.NewWeighted(int64(*j))
+			errg, ctx := errgroup.WithContext(ctx)
+
+			it := bucket.Objects(ctx, &storage.Query{
 				Prefix: u.Path,
 			})
 
@@ -296,18 +308,38 @@ func Rm() int {
 					if err == iterator.Done {
 						break
 					}
+					if workerErr := errg.Wait(); workerErr != nil {
+						err = workerErr
+					}
 					fmt.Fprintf(os.Stderr, "%s\n", err)
 					return 1
 				}
-				o := client.Bucket(oattr.Bucket).Object(oattr.Name)
-				err = o.Delete(ctx)
+				o := bucket.Object(oattr.Name)
+				err = sem.Acquire(ctx, 1)
 				if err != nil {
-					if err != storage.ErrObjectNotExist {
-						fmt.Fprintf(os.Stderr, "%s\n", err)
-						return 1
-					}
+					// The only reason this would happen is a worker failed.
+					err = errg.Wait()
+					fmt.Fprintf(os.Stderr, "%s\n", err)
+					return 1
 				}
+				errg.Go(func() error {
+					defer sem.Release(1)
+					err := o.Delete(ctx)
+					if err != nil {
+						if err != storage.ErrObjectNotExist {
+							return err
+						}
+					}
+					return nil
+				})
 			}
+
+			err = errg.Wait()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				return 1
+			}
+
 		} else {
 			o := client.Bucket(u.Bucket).Object(u.Path)
 			err = o.Delete(ctx)
@@ -326,9 +358,13 @@ func Rm() int {
 
 func Mb() int {
 
-	project := flag.String("project", "", "Project to make bucket under.")
+	project := flag.String("google-cloud-project", "", "Project to make bucket under, defaults to $GOOGLE_CLOUD_PROJECT.")
 
 	flag.Parse()
+
+	if *project == "" {
+		*project = os.Getenv("GOOGLE_CLOUD_PROJECT")
+	}
 
 	ctx := context.Background()
 

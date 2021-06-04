@@ -30,12 +30,12 @@ gslite - Small google storage client.
   gslite list [-stat] gs://BUCKET/OBJECT
     Print all object information under the given path.
 
-  gslite rm [-r] gs://BUCKET/OBJECT
+  gslite rm [-r] [-j=$NUM_PARALLEL] gs://BUCKET/OBJECT
     Remove an object, do nothing if it didn't exist.
     If -r is specified, will delete following the same
     rules that list follows.
 
-  gslite mb -project PROJECT NAME
+  gslite mb -google-cloud-project PROJECT NAME
     Create a bucket.
 
   gslite rmb gs://BUCKET/

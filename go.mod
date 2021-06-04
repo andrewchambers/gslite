@@ -1,10 +1,9 @@
 module github.com/andrewchambers/gslite
 
+go 1.16
+
 require (
-	cloud.google.com/go v0.34.0
-	github.com/andrewchambers/go-extra v0.0.0-20181025074457-a83364f5773a // indirect
-	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
-	go.opencensus.io v0.18.0 // indirect
-	google.golang.org/api v0.0.0-20181206211257-1a5ef82f9af4
-	google.golang.org/genproto v0.0.0-20181202183823-bd91e49a0898 // indirect
+	cloud.google.com/go/storage v1.15.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	google.golang.org/api v0.47.0
 )

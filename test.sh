@@ -3,12 +3,12 @@
 set -eux
 set -o pipefail
 
-go build
+go build -race
 
 ./gslite rm -r "gs://$TEST_BUCKET_NAME/" || true
 ./gslite rmb "gs://$TEST_BUCKET_NAME/" || true
 
-./gslite mb -project "$TEST_PROJECT" "gs://$TEST_BUCKET_NAME/"
+./gslite mb -google-cloud-project "$TEST_PROJECT" "gs://$TEST_BUCKET_NAME/"
 
 echo -n "foo" | ./gslite put "gs://$TEST_BUCKET_NAME/a"
 echo -n "bar" | ./gslite put "gs://$TEST_BUCKET_NAME/b"
@@ -37,5 +37,11 @@ test "$rc2" = 2
 test "$(./gslite list "gs://$TEST_BUCKET_NAME")" = "gs://$TEST_BUCKET_NAME/b"
 test "$(./gslite list -jsonl "gs://$TEST_BUCKET_NAME" | jq -r .Name)" = "b"
 
-./gslite rm -r "gs://$TEST_BUCKET_NAME/"
+for i in $(seq 32)
+do
+  echo -n "data" | ./gslite put "gs://$TEST_BUCKET_NAME/o$i" &
+done
+wait 
+
+./gslite rm -r -j 16 "gs://$TEST_BUCKET_NAME/"
 ./gslite rmb "gs://$TEST_BUCKET_NAME/"
