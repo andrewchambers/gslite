@@ -58,15 +58,17 @@ gslite - Small google storage client.
     Print all object information under the given path.
 
   gslite rm [-r] gs://BUCKET/OBJECT
-	Remove an object, do nothing if it didn't exist.
-	If -r is specified, will delete following the same
-	rules that list follows.
+	  Remove an object, do nothing sucessfully if it didn't exist.
+	  If -r is specified, will delete following the same
+	  rules that list follows.
 
-  gslite mb -google-cloud-project PROJECT NAME
-    Create a bucket.
+  gslite mb [-storage-class=CLASS]
+            [-location=LOC]
+            [-google-cloud-project=PROJECT] NAME
+    Create a bucket, project defaults to $GOOGLE_CLOUD_PROJECT.
 
   gslite rmb gs://BUCKET/
-    Delete a bucket.
+    Delete a bucket, do nothing successfully if it didn't exist.
   `)
 	return 0
 }
@@ -359,6 +361,8 @@ func Rm() int {
 func Mb() int {
 
 	project := flag.String("google-cloud-project", "", "Project to make bucket under, defaults to $GOOGLE_CLOUD_PROJECT.")
+	location := flag.String("location", "US", "Bucket location.")
+	storageClass := flag.String("storage-class", "STANDARD", "Bucket default storage class.")
 
 	flag.Parse()
 
@@ -380,7 +384,10 @@ func Mb() int {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			return 1
 		}
-		err = client.Bucket(u.Bucket).Create(ctx, *project, nil)
+		err = client.Bucket(u.Bucket).Create(ctx, *project, &storage.BucketAttrs{
+			Location:     *location,
+			StorageClass: *storageClass,
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			return 1
