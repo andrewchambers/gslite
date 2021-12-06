@@ -1,13 +1,7 @@
 # gslite
 
-A lightweight alternative to google cloud sdk gsutil.
-
-# Rationale
-
-gsutil from google is a 200 mb dependency, and doesn't have reliable ways to
-check if an object doesn't exist.
-
-gslite solves both of those problems.
+A lightweight alternative to google cloud sdk gsutil that provides 
+a simple and consistent interface.
 
 # Usage
 
@@ -30,14 +24,17 @@ gslite - Small google storage client.
   gslite list [-stat] gs://BUCKET/OBJECT
     Print all object information under the given path.
 
-  gslite rm [-r] [-j=$NUM_PARALLEL] gs://BUCKET/OBJECT
-    Remove an object, do nothing if it didn't exist.
+  gslite rm [-r] gs://BUCKET/OBJECT
+    Remove an object, do nothing sucessfully if it didn't exist.
     If -r is specified, will delete following the same
     rules that list follows.
 
-  gslite mb -google-cloud-project PROJECT NAME
-    Create a bucket.
+  gslite mb [-storage-class=CLASS]
+            [-location=LOC]
+            [-public-access-prevention=inherited|enforced]
+            [-google-cloud-project=PROJECT] NAME
+    Create a bucket, project defaults to $GOOGLE_CLOUD_PROJECT.
 
   gslite rmb gs://BUCKET/
-    Delete a bucket.
+    Delete a bucket, do nothing successfully if it didn't exist.
 ```
