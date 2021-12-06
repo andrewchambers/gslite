@@ -64,6 +64,7 @@ gslite - Small google storage client.
 
   gslite mb [-storage-class=CLASS]
             [-location=LOC]
+            [-public-access-prevention=inherited|enforced]
             [-google-cloud-project=PROJECT] NAME
     Create a bucket, project defaults to $GOOGLE_CLOUD_PROJECT.
 
@@ -363,11 +364,23 @@ func Mb() int {
 	project := flag.String("google-cloud-project", "", "Project to make bucket under, defaults to $GOOGLE_CLOUD_PROJECT.")
 	location := flag.String("location", "US", "Bucket location.")
 	storageClass := flag.String("storage-class", "STANDARD", "Bucket default storage class.")
+	publicAccessPrevention := flag.String("public-access-prevention", "inherited", "Public access prevention, one of 'inherited' or 'enforced'.")
 
 	flag.Parse()
 
 	if *project == "" {
 		*project = os.Getenv("GOOGLE_CLOUD_PROJECT")
+	}
+
+	var parsedPublicAccessPrevention storage.PublicAccessPrevention
+	switch *publicAccessPrevention {
+	case "inherited":
+		parsedPublicAccessPrevention = storage.PublicAccessPreventionInherited
+	case "enforced":
+		parsedPublicAccessPrevention = storage.PublicAccessPreventionEnforced
+	default:
+		fmt.Fprintf(os.Stderr, "expected one of inherited or enforced, got %s\n", *publicAccessPrevention)
+		return 1
 	}
 
 	ctx := context.Background()
@@ -385,8 +398,9 @@ func Mb() int {
 			return 1
 		}
 		err = client.Bucket(u.Bucket).Create(ctx, *project, &storage.BucketAttrs{
-			Location:     *location,
-			StorageClass: *storageClass,
+			Location:               *location,
+			StorageClass:           *storageClass,
+			PublicAccessPrevention: parsedPublicAccessPrevention,
 		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
